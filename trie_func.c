@@ -48,8 +48,7 @@ void insert(char* string, struct node * root, char* val) {
                 }
            }
         if(add == TRIE_TRUE) {
-            struct node * new = calloc(sizeof(struct node),1);
-            new = fill_node(*current, "kekw", TRIE_FALSE, currnode);
+            struct node * new = fill_node(*current, "kekw", TRIE_FALSE, currnode);
             currnode = new;
             printf("adding node %c \n", *current);
             
@@ -71,30 +70,42 @@ void delete(char * string, struct node * root) {
         return;
     }
     char* current = string;
-    int remove_length = strlen(current);
     struct node * currnode = root;
-    while(*current != '\0') {
+    while(*current != '\0' && currnode->no_of_children != 0) {
            for(int j = 0; j < currnode->no_of_children; j++) {
+               if(currnode->children[j]->key == *current) {
                     currnode = currnode->children[j];
-                    current++;
+                    current++;    
                     break;
+               }
             }
         }
     currnode->is_word = TRIE_FALSE;
     printf("Last letter of word unmarked \n");
-    for(int i = remove_length; i > 0; i--) {
-        if(currnode->no_of_children == 0) {   
-            currnode = currnode->parent;
-            for (int j = 0; j < currnode->no_of_children; j++)  {
-                if(currnode->children[j]->key == *(current-1)) {
-                    printf("Node %c deleted \n", *(current-1));
-                    free(currnode->children[j]);
-                    current--;
-                    currnode->no_of_children--;
-                }
+    while(currnode->no_of_children == 0) {
+        char tmp = currnode->key;
+        free(currnode->children);
+        currnode = currnode->parent;
+        for(int i = 0; i < currnode->no_of_children; i++) {
+            if(tmp == currnode->children[i]->key) {
+                printf("deleting node %c \n", currnode->children[i]->key);  
+                free(currnode->children[i]);
+                memmove(&(currnode->children[i]),&(currnode->children[i+1]),(currnode->no_of_children-i) * sizeof(struct node *));
+                currnode->no_of_children--;
+                break;
             }
-        } else {
-            return;
         }
+              
     }
+}
+
+void free_trie(struct node * root) {
+    if(root == NULL) {
+        return;
+    }
+    for(int i = 0; i < root->no_of_children; i++) {
+        free_trie(root->children[i]);
+    }
+    free(root->children);
+    free(root);
 }

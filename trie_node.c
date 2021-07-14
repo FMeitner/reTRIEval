@@ -2,6 +2,7 @@
 #include <stddef.h>
 #include <stdlib.h>
 #include <stdio.h>
+#include <memory.h>
 
 struct node* create_node() {
     struct node* new = calloc(sizeof(struct node), 1);
@@ -23,19 +24,15 @@ struct node * fill_node(char key, char* value, TRIE_BOOL word, struct node* pare
         empty->is_word = word;
         empty->value = value;
     }
-    empty->parent = parent;
-    parent->no_of_children++;
-    for(int i = 0; i < parent->child_size; i++) { 
-        if(parent->children[i] == NULL)
-        {
-            parent->children[i] = empty;
-            break;
-        }
-        if(i+1 == parent->child_size) {
-            i = 0;
-            parent->child_size= parent->child_size * 2;
-            parent->children = reallocarray(parent->children,parent->child_size,sizeof(struct node*));
-        } 
+    empty->parent = parent;    
+
+    if((parent->no_of_children)+1 == parent->child_size) { 
+        parent->child_size= parent->child_size * 2;
+        parent->children = reallocarray(parent->children,sizeof(struct node*),parent->child_size);
+        memset(&(parent->children[parent->no_of_children]),0,(parent->child_size) / 2);
     }
+    parent->children[parent->no_of_children] = empty;
+    parent->no_of_children++;
+   
     return empty;
 }

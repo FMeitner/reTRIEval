@@ -7,7 +7,13 @@
 int main() {
     struct node * root = create_node();
     insert_data(root);
+    int egal = system("clear");
+    egal++;
     search("Gök", root);
-
+    search("BVT", root);
+    delete("MAMA", root);
+    delete("M4MB", root);
+    delete("MAI", root);
+    free_trie(root);
     return 0;
 }
