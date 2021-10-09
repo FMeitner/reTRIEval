@@ -4,15 +4,21 @@
 #include <stdio.h>
 #include <memory.h>
 
+
+
 struct node* create_node() {
-    struct node* new = calloc(sizeof(struct node), 1);
-    new->key = ' ';
-    new->children = calloc(sizeof(struct node*), 4);
-    new->child_size = 4;
+    struct node* new = NULL;
+    new = malloc(sizeof(struct node));
+    for(int i = 0; i < ALPHABET_SIZE; i++) { 
+        new->children[i] = NULL;
+    }
     new->is_word = TRIE_FALSE;
-    new->value = NULL;
+    new->key = ' ';
     new->parent = NULL;
-    new->no_of_children = 0;
+    new->value = NULL;
+    for(int i = 0; i < ALPHABET_SIZE; i++) {
+        new->children[i] = NULL;
+    }
     return new;
 }
 
@@ -26,13 +32,6 @@ struct node * fill_node(char key, char* value, TRIE_BOOL word, struct node* pare
     }
     empty->parent = parent;    
 
-    if((parent->no_of_children)+1 == parent->child_size) { 
-        parent->child_size= parent->child_size * 2;
-        parent->children = reallocarray(parent->children,sizeof(struct node*),parent->child_size);
-        memset(&(parent->children[parent->no_of_children]),0,(parent->child_size) / 2);
-    }
-    parent->children[parent->no_of_children] = empty;
-    parent->no_of_children++;
-   
+    parent->children[key-'A'] = empty;
     return empty;
 }

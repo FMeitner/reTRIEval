@@ -3,109 +3,85 @@
 #include "trie_func.h"
 #include <string.h>
 
-TRIE_BOOL search (char* string, struct node * root) {
-    TRIE_BOOL found = TRIE_FALSE;
-    struct node * found_child;
-    printf("looking for %s \n", string);
 
-    for(int i = 0; i < root->no_of_children; i++)
-    {
-        if(string[0] == root->children[i]->key) {
-            found = TRIE_TRUE;
-            found_child = root->children[i];
+TRIE_BOOL search (char* string, struct node * root) {
+    struct node * current = root;
+    for(char* i = string; i[0] != '\0'; i++) {
+        if(current->children[i[0]-'A'] != NULL) {
+            current = current->children[i[0]-'A'];
+        } else {
+            return TRIE_FALSE;
             break;
         }
     }
+    if(current->is_word == TRIE_TRUE) {
+        return TRIE_TRUE;
+    } else {
+        return TRIE_FALSE;
+    }
+}
 
-    if(found == TRIE_TRUE) {
-        if(string[1] == '\0') {
-            if(found_child->is_word != TRIE_TRUE)
-            {
-                printf("node %c has no value \n", string[0]);
-                return TRIE_FALSE;
+
+void insert(char* string, struct node * root, char* val) {  
+    TRIE_BOOL found = TRIE_TRUE; 
+    struct node * current = root;
+    if(!search(string, root)) {
+        for(char* i = string; i[0] != '\0'; i++) {
+            if(current->children[i[0] -'A'] != NULL) {
+               current = current->children[i[0]-'A'];
+            } else {
+                found = TRIE_FALSE;
             }
-            printf("node %c has value %s \n", string[0], found_child->value);
-            return TRIE_TRUE;
+            if(found == TRIE_FALSE) {
+                if(*(i+1) == '\0') {
+                current->children[i[0] - 'A'] = fill_node(i[0],val,TRIE_TRUE, current);
+                return;
+                } else {
+                current->children[i[0] - 'A'] = fill_node(i[0],val,TRIE_FALSE, current);
+                current = current->children[i[0] - 'A'];
+                }
+            }
         }
-        printf("node \"%c\" found \n", string[0]);
-        return search(string+1, found_child);
+        return;
     }
-    printf("node %c not found \n", string[0]);
-    return TRIE_FALSE;
+    //printf("Word already part of the TRIE \n");
+    return;
 }
 
-void insert(char* string, struct node * root, char* val) {   
-       char* current = string;
-       struct node * currnode = root;
-       
-       while(*current != '\0') {
-           TRIE_BOOL add = TRIE_TRUE;
-           for(int j = 0; j < currnode->no_of_children; j++) {
-                if (currnode->children[j]->key == *current) {
-                    printf("node %c already exists \n", current[0]);
-                    add = TRIE_FALSE;
-                    currnode = currnode->children[j];
-                }
-           }
-        if(add == TRIE_TRUE) {
-            struct node * new = fill_node(*current, "kekw", TRIE_FALSE, currnode);
-            currnode = new;
-            printf("adding node %c \n", *current);
-            
-            if(current[1] == '\0')
-            {
-                new->value = val;
-                new->is_word = TRIE_TRUE;
-                printf("word added \n");
-            }   
-        }
-        current+=1;
-    }
-}
 
 void delete(char * string, struct node * root) {
-    printf("Trying to remove word %s. \n", string);
-    if(search(string, root) == TRIE_FALSE) {
-        printf("Word was not found so it can't be deleted. \n");
-        return;
-    }
-    char* current = string;
-    struct node * currnode = root;
-    while(*current != '\0' && currnode->no_of_children != 0) {
-           for(int j = 0; j < currnode->no_of_children; j++) {
-               if(currnode->children[j]->key == *current) {
-                    currnode = currnode->children[j];
-                    current++;    
-                    break;
-               }
+    if(search(string,root)) {
+        struct node * current = root;
+        for(char* i = string; i[0] != '\0'; i++) {
+            if(current->children[i[0]-'A'] != NULL) {
+               current = current->children[i[0]-'A'];
             }
         }
-    currnode->is_word = TRIE_FALSE;
-    printf("Last letter of word unmarked \n");
-    while(currnode->no_of_children == 0) {
-        char tmp = currnode->key;
-        free(currnode->children);
-        currnode = currnode->parent;
-        for(int i = 0; i < currnode->no_of_children; i++) {
-            if(tmp == currnode->children[i]->key) {
-                printf("deleting node %c \n", currnode->children[i]->key);  
-                free(currnode->children[i]);
-                memmove(&(currnode->children[i]),&(currnode->children[i+1]),(currnode->no_of_children-i) * sizeof(struct node *));
-                currnode->no_of_children--;
-                break;
+        current->is_word = TRIE_FALSE;
+        while(TRIE_TRUE) {
+            for(int i = 0; i < ALPHABET_SIZE; i++) {
+                if(current->children[i] != NULL) {
+                    return;
+                } 
             }
+            char tmp = current->key;
+            current = current->parent;
+            current->children[tmp-'A'] = NULL;
+            //printf("Node %c deleted \n", tmp);
         }
-              
     }
+    //printf("Word not found \n");
+    return;
 }
 
+
+
 void free_trie(struct node * root) {
-    if(root == NULL) {
-        return;
+    for(int i = 0; i < ALPHABET_SIZE; i++) {
+        if(root->children[i] != NULL) {
+            free_trie(root->children[i]);
+        }
     }
-    for(int i = 0; i < root->no_of_children; i++) {
-        free_trie(root->children[i]);
-    }
-    free(root->children);
     free(root);
+    return;
 }

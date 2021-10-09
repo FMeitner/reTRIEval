@@ -1,6 +1,6 @@
 #ifndef DATASET
 #define DATASET
 
-void insert_data(struct node* root);
+char* insert_random(char* string);
 
 #endif
